@@ -1,4 +1,4 @@
-# ROGbuster
+# 👻 ROGbuster
 
 **Stop sifting through discovery responses by hand.**
 
