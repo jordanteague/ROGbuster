@@ -1,0 +1,263 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<link rel="icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 32 32'%3E%3Crect width='32' height='32' rx='7' fill='%230F6B3E'/%3E%3Ctext x='16' y='23' font-family='Georgia,serif' font-size='20' font-weight='700' fill='white' text-anchor='middle'%3ER%3C/text%3E%3C/svg%3E">
+<meta property="og:title" content="ROGbuster">
+<meta property="og:description" content="Upload the other side's discovery responses. ROGbuster scores each one, lists what's missing, and drafts your meet-and-confer letter. Free and open source.">
+<meta property="og:image" content="https://rogbuster.com/poster.jpg">
+<meta property="og:url" content="https://rogbuster.com/">
+<meta name="twitter:card" content="summary_large_image">
+<title>ROGbuster</title>
+<meta name="claude:viewport-fit-sides" content="cover">
+<meta name="description" content="ROGbuster reviews the other side's written discovery responses, flags every gap, and drafts your meet-and-confer letter.">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Figtree:wght@400;500;600;700&family=Source+Serif+4:ital,opsz,wght@0,8..60,500;0,8..60,600;1,8..60,500&display=swap">
+<style>
+html{color-scheme:light;padding:env(safe-area-inset-top,0px) 0 env(safe-area-inset-bottom,0px)}
+body{margin:0}
+img,video{max-width:100%}
+[hidden]{display:none!important}
+/* Layout: a single reading column on the app's own paper and forest green; the demo sits full width under the headline,
+   then a working-paper specimen of the 0–5 completeness scale, the four steps, and plain answers about data. */
+:root{
+  --paper:#F4F5F2; --sheet:#FFFFFF; --ink:#13241B; --muted:#56635C; --rule:#DDE2DC; --rule-strong:#BCC5BE;
+  --green:#0F6B3E; --green-ink:#FFFFFF; --green-soft:#E2F1E6; --green-hover:#0A5530;
+  --s5b:#CDE8D3; --s5f:#0E5A31; --s4b:#E8F5EB; --s4f:#1E6B3F; --s3b:#FCF0C4; --s3f:#6B4E00;
+  --s2b:#FBE0E4; --s2f:#9B1C2C; --s1b:#F3B3B9; --s1f:#6E0D19; --s0b:#E07A84; --s0f:#3D050C;
+  --display:"Source Serif 4", Georgia, "Times New Roman", serif;
+  --body:"Figtree", system-ui, -apple-system, "Segoe UI", Roboto, Arial, sans-serif;
+}
+@media (prefers-color-scheme: dark){:root:not([data-theme="light"]){
+  --paper:#111613; --sheet:#19201C; --ink:#E6ECE8; --muted:#A1ADA6; --rule:#2B3530; --rule-strong:#3E4A43;
+  --green:#5CC48C; --green-ink:#08190F; --green-soft:#173022; --green-hover:#7DD4A5;
+  --s5b:#1F4A2E; --s5f:#BDE8CB; --s4b:#1A3524; --s4f:#A8DDB8; --s3b:#4A3B10; --s3f:#F5DC8A;
+  --s2b:#4A2028; --s2f:#F6B8C1; --s1b:#6A1B25; --s1f:#FFD0D5; --s0b:#8A1E2B; --s0f:#FFE3E6; color-scheme:dark}}
+:root[data-theme="dark"]{
+  --paper:#111613; --sheet:#19201C; --ink:#E6ECE8; --muted:#A1ADA6; --rule:#2B3530; --rule-strong:#3E4A43;
+  --green:#5CC48C; --green-ink:#08190F; --green-soft:#173022; --green-hover:#7DD4A5;
+  --s5b:#1F4A2E; --s5f:#BDE8CB; --s4b:#1A3524; --s4f:#A8DDB8; --s3b:#4A3B10; --s3f:#F5DC8A;
+  --s2b:#4A2028; --s2f:#F6B8C1; --s1b:#6A1B25; --s1f:#FFD0D5; --s0b:#8A1E2B; --s0f:#FFE3E6; color-scheme:dark}
+
+*{box-sizing:border-box}
+body{background:var(--paper);color:var(--ink);font:400 17px/1.6 var(--body);-webkit-font-smoothing:antialiased}
+a{color:var(--green)}
+a:focus-visible,button:focus-visible{outline:2px solid var(--green);outline-offset:3px;border-radius:6px}
+.col{max-width:1080px;margin:0 auto;padding-left:max(20px,env(safe-area-inset-left,0px));padding-right:max(20px,env(safe-area-inset-right,0px))}
+.narrow{max-width:720px}
+
+header.top{border-bottom:1px solid var(--rule);background:var(--sheet)}
+header.top .col{display:flex;align-items:center;justify-content:space-between;gap:16px;padding-block:14px}
+.mark{font:600 24px/1 var(--display);letter-spacing:-.01em;color:var(--ink);text-decoration:none}
+.topnav{display:flex;align-items:center;gap:20px}
+.gh{display:inline-flex;align-items:center;gap:8px;font:600 15px/1 var(--body);color:var(--ink);text-decoration:none;padding:9px 14px;border:1px solid var(--rule-strong);border-radius:10px;background:var(--sheet)}
+.gh:hover{border-color:var(--ink)}
+@media (max-width:520px){.gh span{position:absolute;width:1px;height:1px;overflow:hidden;clip:rect(0 0 0 0)}.gh{padding:9px}.topnav{gap:10px}}
+.btn{display:inline-flex;align-items:center;gap:8px;font:600 16px/1 var(--body);padding:13px 20px;border-radius:10px;text-decoration:none;border:1px solid transparent;white-space:nowrap}
+.btn.primary{background:var(--green);color:var(--green-ink)}
+.btn.primary:hover{background:var(--green-hover)}
+.btn.ghost{border-color:var(--rule-strong);color:var(--ink);background:var(--sheet)}
+.btn.ghost:hover{border-color:var(--green)}
+.btn.sm{padding:10px 16px;font-size:15px}
+
+.hero{padding-block:64px 36px}
+.eyebrow{font:600 13px/1 var(--body);letter-spacing:.08em;text-transform:uppercase;color:var(--green);margin:0 0 18px}
+h1{font:500 clamp(34px,5.4vw,58px)/1.08 var(--display);letter-spacing:-.015em;margin:0;max-width:17ch;text-wrap:balance}
+.lede{font-size:20px;line-height:1.55;color:var(--muted);max-width:60ch;margin:22px 0 30px}
+.ctas{display:flex;flex-wrap:wrap;gap:12px;align-items:center}
+.note{font-size:14px;color:var(--muted);margin:14px 0 0}
+
+.demo{padding-block:8px 72px}
+.frame{border:1px solid var(--rule-strong);border-radius:14px;overflow:hidden;background:var(--sheet);box-shadow:0 20px 50px -24px rgba(10,40,24,.35)}
+.frame video{display:block;width:100%;height:auto;aspect-ratio:16/9;background:var(--sheet)}
+.cap{font-size:14px;color:var(--muted);margin:12px 2px 0}
+
+section.band{border-top:1px solid var(--rule);padding-block:64px}
+h2{font:500 clamp(26px,3.4vw,36px)/1.15 var(--display);letter-spacing:-.01em;margin:0 0 12px;text-wrap:balance}
+.sub{color:var(--muted);max-width:62ch;margin:0 0 32px}
+
+/* the four steps: a real sequence, so they are numbered */
+ol.steps{list-style:none;margin:0;padding:0;display:grid;grid-template-columns:repeat(4,minmax(0,1fr));gap:28px;counter-reset:s}
+ol.steps li{counter-increment:s;border-top:2px solid var(--ink);padding-top:14px;min-width:0}
+ol.steps li::before{content:"Step " counter(s);display:block;font:600 13px/1 var(--body);letter-spacing:.06em;text-transform:uppercase;color:var(--green);margin-bottom:10px}
+ol.steps h3{font:600 19px/1.3 var(--body);margin:0 0 6px}
+ol.steps p{margin:0;color:var(--muted);font-size:16px}
+ol.steps .opt{font-weight:500;color:var(--muted);font-size:14px}
+
+/* specimen: one real response, scored */
+.spec{display:grid;grid-template-columns:minmax(0,1.05fr) minmax(0,1fr);gap:0;background:var(--sheet);border:1px solid var(--rule-strong);border-radius:14px;overflow:hidden}
+.spec>div{padding:28px;min-width:0}
+.spec .src{border-right:1px solid var(--rule)}
+.lbl{font:600 12px/1 var(--body);letter-spacing:.08em;text-transform:uppercase;color:var(--muted);margin:0 0 8px}
+.quote{font:400 16px/1.6 var(--display);margin:0 0 20px}
+.quote:last-child{margin:0}
+.verdict{display:flex;align-items:center;gap:12px;margin:0 0 16px}
+.verdict b{font:600 19px/1.3 var(--body)}
+.sc{display:inline-flex;align-items:baseline;gap:2px;font:700 15px/1 var(--body);padding:6px 10px;border-radius:7px;font-variant-numeric:tabular-nums;white-space:nowrap}
+.sc small{font-weight:500;font-size:12px;opacity:.85}
+.l5{background:var(--s5b);color:var(--s5f)}.l4{background:var(--s4b);color:var(--s4f)}.l3{background:var(--s3b);color:var(--s3f)}
+.l2{background:var(--s2b);color:var(--s2f)}.l1{background:var(--s1b);color:var(--s1f)}.l0{background:var(--s0b);color:var(--s0f)}
+ul.issues{list-style:none;margin:0 0 18px;padding:0;display:grid;gap:8px}
+ul.issues li{border:1px solid var(--rule);border-radius:8px;padding:10px 12px;font-size:15px;line-height:1.45}
+.ask{font-size:15px;margin:0;padding:12px 14px;background:var(--green-soft);border-radius:8px}
+.scale{display:flex;flex-wrap:wrap;gap:8px 18px;align-items:center;margin:22px 0 0;font-size:14px;color:var(--muted)}
+.scale span{display:inline-flex;align-items:center;gap:8px}
+
+/* who, what you need, file types */
+.facts{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:28px}
+.facts h3{font:600 17px/1.3 var(--body);margin:0 0 6px}
+.facts p{margin:0;color:var(--muted);font-size:16px}
+
+/* FAQ */
+.faq{display:grid;gap:0;border-top:1px solid var(--rule)}
+.faq details{border-bottom:1px solid var(--rule)}
+.faq summary{cursor:pointer;list-style:none;display:flex;justify-content:space-between;gap:16px;padding:18px 2px;font:600 18px/1.35 var(--body)}
+.faq summary::-webkit-details-marker{display:none}
+.faq summary::after{content:"+";font-weight:500;color:var(--green);font-size:22px;line-height:1}
+.faq details[open] summary::after{content:"–"}
+.faq p{margin:0 0 18px;color:var(--muted);max-width:66ch}
+
+.close{padding-block:72px;text-align:left}
+.close h2{max-width:20ch}
+footer{border-top:1px solid var(--rule);padding-block:28px;font-size:14px;color:var(--muted)}
+footer .col{display:flex;flex-wrap:wrap;justify-content:space-between;gap:10px 24px}
+
+@media (max-width:860px){
+  ol.steps{grid-template-columns:repeat(2,minmax(0,1fr))}
+  .spec{grid-template-columns:minmax(0,1fr)}
+  .spec .src{border-right:0;border-bottom:1px solid var(--rule)}
+  .facts{grid-template-columns:minmax(0,1fr)}
+}
+@media (max-width:520px){
+  body{font-size:16px}
+  .hero{padding-block:40px 28px}
+  .lede{font-size:18px}
+  ol.steps{grid-template-columns:minmax(0,1fr)}
+  .spec>div{padding:20px}
+  header.top .btn{padding:9px 13px;font-size:14px}
+}
+@media (prefers-reduced-motion:reduce){*{transition:none!important}}
+</style>
+</head>
+<body>
+<header class="top">
+  <div class="col">
+    <a class="mark" href="#top">ROGbuster</a>
+    <nav class="topnav"><a class="gh" href="https://github.com/jordanteague/rogbuster" target="_blank" rel="noopener"><svg viewBox="0 0 16 16" width="18" height="18" aria-hidden="true"><path fill="currentColor" d="M8 0c4.42 0 8 3.58 8 8a8.013 8.013 0 0 1-5.45 7.59c-.4.08-.55-.17-.55-.38 0-.27.01-1.13.01-2.2 0-.75-.25-1.23-.54-1.48 1.78-.2 3.65-.88 3.65-3.95 0-.88-.31-1.59-.82-2.15.08-.2.36-1.02-.08-2.12 0 0-.67-.22-2.2.82-.64-.18-1.32-.27-2-.27-.68 0-1.36.09-2 .27-1.53-1.03-2.2-.82-2.2-.82-.44 1.1-.16 1.92-.08 2.12-.51.56-.82 1.28-.82 2.15 0 3.06 1.86 3.75 3.64 3.95-.23.2-.44.55-.51 1.07-.46.21-1.61.55-2.33-.66-.15-.24-.6-.83-1.23-.82-.67.01-.27.38.01.53.34.19.73.9.82 1.13.16.45.68 1.31 2.69.94 0 .67.01 1.3.01 1.49 0 .21-.15.45-.55.38A7.995 7.995 0 0 1 0 8c0-4.42 3.58-8 8-8Z"/></svg><span>View on GitHub</span></a><a class="btn primary sm" href="https://claude.ai/artifact/HWreJdNHydUA8atQdkzDR8" target="_blank" rel="noopener">Open ROGbuster</a></nav>
+  </div>
+</header>
+
+<main id="top">
+  <div class="col hero">
+    <p class="eyebrow">For litigators and paralegals</p>
+    <h1>Stop sifting through discovery responses by hand.</h1>
+    <p class="lede">Upload the other side's answers to your interrogatories, requests for production and requests for admission. ROGbuster scores how complete each response is, lists what's missing, and drafts your meet-and-confer letter.</p>
+    <div class="ctas">
+      <a class="btn primary" href="https://claude.ai/artifact/HWreJdNHydUA8atQdkzDR8" target="_blank" rel="noopener">Open ROGbuster</a>
+      <a class="btn ghost" href="#demo">Watch the demo</a>
+    </div>
+    <p class="note">Free and <a href="https://github.com/jordanteague/rogbuster" target="_blank" rel="noopener">open source</a>. Runs inside Claude, so you'll need a Claude account.</p>
+  </div>
+
+  <div class="col demo" id="demo">
+    <div class="frame">
+      <video controls muted playsinline preload="metadata" poster="poster.jpg">
+        <source src="rogbuster-demo.mp4" type="video/mp4">
+      </video>
+    </div>
+    <p class="cap">43 seconds, no sound. Shown with fictional test documents (<i>Pie in the Sky Bakery v. Frostbyte Refrigeration</i>).</p>
+  </div>
+
+  <section class="band" aria-labelledby="h-how">
+    <div class="col">
+      <h2 id="h-how">How it works</h2>
+      <p class="sub">The same four steps you'd follow with a highlighter and a legal pad, done in minutes.</p>
+      <ol class="steps">
+        <li><h3>Upload their responses</h3><p>PDF, Word, text or photos. Scanned PDFs are read with OCR. Drop the wrong document and ROGbuster tells you.</p></li>
+        <li><h3>Add your requests <span class="opt">(optional)</span></h3><p>Add the requests you served and the complaint, so each answer is judged against what you actually asked and what the case is about.</p></li>
+        <li><h3>Review the gaps</h3><p>Every response gets a 0–5 completeness score and a list of issues. Change the score, X out an issue, add your own, and mark each one reviewed.</p></li>
+        <li><h3>Draft the letter</h3><p>One click drafts a meet-and-confer letter covering every deficient response, addressed to opposing counsel from their signature block. Or export everything to CSV.</p></li>
+      </ol>
+    </div>
+  </section>
+
+  <section class="band" aria-labelledby="h-spec">
+    <div class="col">
+      <h2 id="h-spec">What a review looks like</h2>
+      <p class="sub">One response from the demo case, as ROGbuster lays it out. You decide what goes in the letter.</p>
+      <div class="spec">
+        <div class="src">
+          <p class="lbl">Interrogatory No. 1</p>
+          <p class="quote">Identify each person who performed any work on the system, including installation, commissioning, service or repair, and for each person state the dates and nature of the work performed.</p>
+          <p class="lbl">Their response</p>
+          <p class="quote">Frostbyte objects to this Interrogatory as overly broad and unduly burdensome. Subject to and without waiving these objections, Frostbyte states that its technicians installed, commissioned and serviced the system in the ordinary course of business.</p>
+        </div>
+        <div>
+          <div class="verdict"><span class="sc l1" title="1 out of 5">1<small>/5</small></span><b>Names no one and gives no dates</b></div>
+          <p class="lbl">Issues to raise</p>
+          <ul class="issues">
+            <li>Doesn't identify any technician by name, or the dates and work each performed.</li>
+            <li>Boilerplate objections with no explanation of the burden.</li>
+          </ul>
+          <p class="lbl">What to ask for</p>
+          <p class="ask">Identify each person by name and title, with the dates and work each performed.</p>
+        </div>
+      </div>
+      <div class="scale" aria-label="Completeness scale">
+        <span><span class="sc l5">5</span> answers the request fully</span>
+        <span><span class="sc l4">4</span></span>
+        <span><span class="sc l3">3</span></span>
+        <span><span class="sc l2">2</span></span>
+        <span><span class="sc l1">1</span></span>
+        <span><span class="sc l0">0</span> no answer at all</span>
+      </div>
+    </div>
+  </section>
+
+  <section class="band" aria-label="At a glance">
+    <div class="col">
+      <div class="facts">
+        <div><h3>Who it's for</h3><p>Lawyers and paralegals who serve written discovery in US litigation and have to chase incomplete answers.</p></div>
+        <div><h3>What you need</h3><p>A Claude account and a browser. Nothing to install, and nothing to pay for.</p></div>
+        <div><h3>What it reads</h3><p>Interrogatories, requests for production and requests for admission, including responses that open with general objections or a cover letter.</p></div>
+      </div>
+    </div>
+  </section>
+
+  <section class="band" aria-labelledby="h-faq">
+    <div class="col narrow">
+      <h2 id="h-faq">Questions</h2>
+      <div class="faq">
+        <details><summary>Where do my documents go?</summary>
+          <p>Your files are read in your browser. Their text is sent to Claude, through your own Claude account, to do the analysis. Your work in progress is saved in your browser on that device. ROGbuster has no server of its own. Follow your firm's policies on using AI tools with client material.</p></details>
+        <details><summary>Is this legal advice?</summary>
+          <p>No. ROGbuster is a first pass that points you at likely problems. Claude can miss things or get them wrong, so read each response yourself and edit the letter before you send it.</p></details>
+        <details><summary>Does it work with scanned PDFs?</summary>
+          <p>Yes. Scans are read with OCR in your browser, and Claude re-reads any page the OCR struggled with.</p></details>
+        <details><summary>Which courts and rules?</summary>
+          <p>It works with US federal and state written discovery. It picks up the court, the parties and both sides' counsel from your documents, and you can correct any of them before drafting the letter.</p></details>
+        <details><summary>What does it cost?</summary>
+          <p>Nothing. ROGbuster is free and open source, and you can read every line of it on <a href="https://github.com/jordanteague/rogbuster" target="_blank" rel="noopener">GitHub</a>. The analysis runs on your own Claude account, so your plan's usage limits apply.</p></details>
+      </div>
+    </div>
+  </section>
+
+  <section class="band close">
+    <div class="col">
+      <h2>Try it on your next set of responses.</h2>
+      <p class="sub">Or click "Try a sample" inside the app to see a finished review first.</p>
+      <a class="btn primary" href="https://claude.ai/artifact/HWreJdNHydUA8atQdkzDR8" target="_blank" rel="noopener">Open ROGbuster</a>
+    </div>
+  </section>
+</main>
+
+<footer>
+  <div class="col">
+    <span>ROGbuster · rogbuster.com · <a href="https://github.com/jordanteague/rogbuster" target="_blank" rel="noopener">Source on GitHub</a></span>
+    <span>An independent tool that runs on Claude. Not legal advice.</span>
+  </div>
+</footer>
+</body>
+</html>
