@@ -79,7 +79,7 @@ h2{font:500 clamp(26px,3.4vw,36px)/1.15 var(--display);letter-spacing:-.01em;mar
 .sub{color:var(--muted);max-width:62ch;margin:0 0 32px}
 
 /* the four steps: a real sequence, so they are numbered */
-ol.steps{list-style:none;margin:0;padding:0;display:grid;grid-template-columns:repeat(4,minmax(0,1fr));gap:28px;counter-reset:s}
+ol.steps{list-style:none;margin:28px 0 0;padding:0;display:grid;grid-template-columns:repeat(4,minmax(0,1fr));gap:28px;counter-reset:s}
 ol.steps li{counter-increment:s;border-top:2px solid var(--ink);padding-top:14px;min-width:0}
 ol.steps li::before{content:"Step " counter(s);display:block;font:600 13px/1 var(--body);letter-spacing:.06em;text-transform:uppercase;color:var(--green);margin-bottom:10px}
 ol.steps h3{font:600 19px/1.3 var(--body);margin:0 0 6px}
@@ -173,7 +173,6 @@ footer .col{display:flex;flex-wrap:wrap;justify-content:space-between;gap:10px 2
   <section class="band" aria-labelledby="h-how">
     <div class="col">
       <h2 id="h-how">How it works</h2>
-      <p class="sub">The same four steps you'd follow with a highlighter and a legal pad, done in minutes.</p>
       <ol class="steps">
         <li><h3>Upload their responses</h3><p>PDF, Word, text or photos. Scanned PDFs are read with OCR. Drop the wrong document and ROGbuster tells you.</p></li>
         <li><h3>Add your requests <span class="opt">(optional)</span></h3><p>Add the requests you served and the complaint, so each answer is judged against what you actually asked and what the case is about.</p></li>
