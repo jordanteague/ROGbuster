@@ -1,6 +1,6 @@
 # 👻 ROGbuster
 
-**Stop sifting through discovery responses by hand.**
+**Put evasive answers to rest.**
 
 ROGbuster is a free, open-source app that runs inside Claude. Upload the other side's answers to your interrogatories, requests for production and requests for admission. ROGbuster scores how complete each response is, lists what's missing, and drafts your meet-and-confer letter.
 
