@@ -2419,20 +2419,22 @@ ${s_gen()}
 
 ${todo.map(r => `[${r.id}] ${TYPE_NAME[r.type]} No. ${r.number}\nREQUEST: ${clip(r.text, 1200) || "(not available)"}\nRESPONSE: ${clip(r.theirResponse, 2500) || "(none)"}\nISSUES ALREADY NOTED:${gapsOf(r).length ? gapsOf(r).map((g,k) => `\n  ${k}. ${clip(g.t, 300)}`).join("") : " none"}`).join("\n\n")}
 
-For each response, go through every rule above and decide whether the response violates it. Apply a rule only to the kinds of response it covers (a rule about inspection demands applies to requests for production, not interrogatories). Count general objections incorporated by reference as part of every response. Be thorough: a boilerplate objection breaks a rule against boilerplate objections even if the response also answers; a "premature" objection to a contention interrogatory breaks a rule against premature objections; a promise to produce with no date breaks a rule requiring a production date.
+For each response, check it against EVERY rule above, one by one, and record a verdict for each rule: R1, R2, R3 and so on, in order, with no rule skipped. Compare the rule's words to the response's words. If the response does what the rule forbids, or leaves out what the rule requires, it violates the rule, even if the same problem is already noted below and even if the response otherwise answers. Examples: a response calling a contention interrogatory "premature," or deferring to expert discovery, violates a rule against premature objections; "overbroad, unduly burdensome" with no explanation violates a rule against boilerplate objections; a promise to produce "at a mutually agreeable time" violates a rule requiring a production date; claiming privilege without a log violates a privilege-log rule. A rule about inspection demands applies only to requests for production; a rule about requests for admission applies only to those. Count general objections incorporated by reference as part of every response.
 
-For each violation give:
-- rule: the rule's number from the list above, e.g. "R2"
-- issue: the number of the issue already noted that describes the same problem, or -1 if none does
-- text: if issue is -1, one neutral sentence under 25 words stating what the response does that the rule doesn't allow, pointing to their words; otherwise ""
-- ask: one sentence on the cure, naming the rule, e.g. "Serve a privilege log, as Local Rule 3.11 requires."
+For each response and each rule give:
+- rule: the rule's number, e.g. "R2"
+- violated: true or false
+- issue: if violated, the number of the issue already noted that describes the same problem, or -1 if none does
+- text: if violated and issue is -1, one neutral sentence under 25 words stating what the response does that the rule doesn't allow, pointing to their words; otherwise ""
+- ask: if violated, one sentence on the cure, naming the rule by its citation, e.g. "State all facts now known, as Standing Order ¶ 5 requires."; otherwise ""
 
-Reply with only JSON: {"items":[{"id":string,"violations":[{"rule":string,"issue":integer,"text":string,"ask":string}]}]}`, {cache:false, ...(signal ? {signal} : {})});
+Reply with only JSON: {"items":[{"id":string,"checks":[{"rule":string,"violated":boolean,"issue":integer,"text":string,"ask":string}]}]}`, {cache:false, ...(signal ? {signal} : {})});
     const norm = v => String(v||"").toUpperCase().replace(/[^A-Z0-9]/g,"");
     for(const it of (d.items||[])){
       const r = todo.find(x => norm(x.id)===norm(it && it.id)); if(!r) continue;
       const gl = gapsOf(r), asks = [];
-      for(const v of (Array.isArray(it.violations) ? it.violations : [])){
+      const vs = (Array.isArray(it.checks) ? it.checks.filter(c => c && (c.violated === true || c.violated === "true")) : Array.isArray(it.violations) ? it.violations : []);
+      for(const v of vs){
         const rk = String(v && v.rule || ""), m = rk.match(/^\s*R?\s*(\d+)\s*$/i);
         const cite = m && R[+m[1]-1] ? R[+m[1]-1].cite : byC.get(normC(rk)) || (R.find(x => normC(rk).includes(normC(x.cite)) || normC(x.cite).includes(normC(rk)) && normC(rk).length > 4) || {}).cite; if(!cite) continue;
         rulesStat.cited++;
