@@ -2403,10 +2403,11 @@ Reply with only JSON: {"requests":[{"type":"ROG"|"RFP"|"RFA","number":integer,"t
 }
 /* A second, focused pass: check each analyzed response against the rules the user supplied, and cite them.
    Folding this into the main analysis let rules slip; asked on its own, Claude applies them reliably. */
-let rulesStat = {ran:0, cited:0, err:""};
+let rulesStat = {ran:0, cited:0, err:""}, rulesTier = null;
 async function checkRules(list, signal){
   const R = (S().rules||[]).filter(x => x.cite); if(!R.length || !sample) return;
   const todo = list.filter(r => r.rating && !r.rulesChecked); if(!todo.length) return;
+  if(rulesTier === null) rulesTier = await sample.limits().then(c => c && Array.isArray(c.modelTiers) && c.modelTiers.includes("complex") ? {modelTier:"complex"} : {}).catch(() => ({}));
   const normC = v => String(v||"").toLowerCase().replace(/[^a-z0-9¶§]/g,"");
   const byC = new Map(R.map(x => [normC(x.cite), x.cite]));
   const gapsOf = r => (r.gaps||[]).filter(g => !g.off && !g.mine && String(g.t||"").trim());
@@ -2417,18 +2418,18 @@ Court rules:
 ${R.map((x,k) => `R${k+1}. ${clip(x.t, 400)} [${x.cite}]`).join("\n")}
 ${s_gen()}
 
-${todo.map(r => `[${r.id}] ${TYPE_NAME[r.type]} No. ${r.number}\nREQUEST: ${clip(r.text, 1200) || "(not available)"}\nRESPONSE: ${clip(r.theirResponse, 2500) || "(none)"}\nISSUES ALREADY NOTED:${gapsOf(r).length ? gapsOf(r).map((g,k) => `\n  ${k}. ${clip(g.t, 300)}`).join("") : " none"}`).join("\n\n")}
+${todo.map(r => `[${r.id}] ${TYPE_NAME[r.type]} No. ${r.number}\nREQUEST: ${clip(r.text, 1200) || "(not available)"}\nRESPONSE: ${clip(r.theirResponse, 2500) || "(none)"}\nISSUES ALREADY NOTED:${gapsOf(r).length ? gapsOf(r).map((g,k) => `\n  ${k+1}. ${clip(g.t, 300)}`).join("") : " none"}`).join("\n\n")}
 
 For each response, check it against EVERY rule above, one by one, and record a verdict for each rule: R1, R2, R3 and so on, in order, with no rule skipped. Compare the rule's words to the response's words. If the response does what the rule forbids, or leaves out what the rule requires, it violates the rule, even if the same problem is already noted below and even if the response otherwise answers. Examples: a response calling a contention interrogatory "premature," or deferring to expert discovery, violates a rule against premature objections; "overbroad, unduly burdensome" with no explanation violates a rule against boilerplate objections; a promise to produce "at a mutually agreeable time" violates a rule requiring a production date; claiming privilege without a log violates a privilege-log rule. A rule about inspection demands applies only to requests for production; a rule about requests for admission applies only to those. Count general objections incorporated by reference as part of every response.
 
 For each response and each rule give:
 - rule: the rule's number, e.g. "R2"
 - violated: true or false
-- issue: if violated, the number of the issue already noted that describes the same problem, or -1 if none does
-- text: if violated and issue is -1, one neutral sentence under 25 words stating what the response does that the rule doesn't allow, pointing to their words; otherwise ""
+- issue: if violated, the number of the issue already noted (1, 2, …) that describes the same problem, or 0 if none does
+- text: if violated and issue is 0, one neutral sentence under 25 words stating what the response does that the rule doesn't allow, pointing to their words; otherwise ""
 - ask: if violated, one sentence on the cure, naming the rule by its citation, e.g. "State all facts now known, as Standing Order ¶ 5 requires."; otherwise ""
 
-Reply with only JSON: {"items":[{"id":string,"checks":[{"rule":string,"violated":boolean,"issue":integer,"text":string,"ask":string}]}]}`, {cache:false, ...(signal ? {signal} : {})});
+Reply with only JSON: {"items":[{"id":string,"checks":[{"rule":string,"violated":boolean,"issue":integer,"text":string,"ask":string}]}]}`, {cache:false, ...rulesTier, ...(signal ? {signal} : {})});
     const norm = v => String(v||"").toUpperCase().replace(/[^A-Z0-9]/g,"");
     for(const it of (d.items||[])){
       const r = todo.find(x => norm(x.id)===norm(it && it.id)); if(!r) continue;
@@ -2438,15 +2439,14 @@ Reply with only JSON: {"items":[{"id":string,"checks":[{"rule":string,"violated"
         const rk = String(v && v.rule || ""), m = rk.match(/^\s*R?\s*(\d+)\s*$/i);
         const cite = m && R[+m[1]-1] ? R[+m[1]-1].cite : byC.get(normC(rk)) || (R.find(x => normC(rk).includes(normC(x.cite)) || normC(x.cite).includes(normC(rk)) && normC(rk).length > 4) || {}).cite; if(!cite) continue;
         rulesStat.cited++;
-        const k = Number.isInteger(v.issue) ? v.issue : parseInt(v.issue, 10);
+        const k = parseInt(v.issue, 10) - 1, rule = R.find(x => x.cite === cite);
         if(k >= 0 && gl[k]) gl[k].t = withCite(gl[k].t, cite);
-        else if(String(v.text||"").trim()) (r.gaps = r.gaps||[]).splice(r.gaps.filter(g => !g.mine).length, 0, {t:withCite(String(v.text).trim(), cite)});
-        else continue;
-        if(String(v.ask||"").trim()) asks.push(withCite(String(v.ask).trim(), cite));
+        else { const t = String(v.text||"").trim() || `Doesn't comply with ${cite}: ${clip(rule && rule.t, 200)}`; if(!gl.some(g => g.t.includes(cite))) (r.gaps = r.gaps||[]).splice(r.gaps.filter(g => !g.mine).length, 0, {t:withCite(t, cite)}); }
+        if(String(v.ask||"").trim() && !asks.some(x => x.includes(cite))) asks.push(withCite(String(v.ask).trim(), cite));
       }
       if(asks.length){
         if(r.claudeComp >= 5){ r.claudeComp = 4; r.suggest = true; if(!r.decided){ r.comp = 4; r.deficient = true; } }
-        if(!r.askMine){ const a = String(r.ask||"").trim(); r.ask = [a && a.replace(/[\s.;,]*$/, "."), ...asks.filter(x => !a.includes(x.replace(/\s*\([^)]*\)\.?$/,"")))].filter(Boolean).join(" "); }
+        if(!r.askMine){ const a = String(r.ask||"").trim(); r.ask = [a && a.replace(/[\s.;,]*$/, "."), ...asks.filter(x => !R.some(q => x.includes(q.cite) && a.includes(q.cite)))].filter(Boolean).join(" "); }
       }
       r.problem = liveGaps(r)[0] || "";
       r.rulesChecked = true;
