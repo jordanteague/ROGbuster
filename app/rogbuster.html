@@ -458,6 +458,7 @@ ul.gapl .gx:hover{border-color:var(--rule-strong);color:var(--red)}
 :root{
   --paper:#F4F5F2; --sheet:#FFFFFF; --ink:#13241B; --muted:#56635C; --rule:#DDE2DC; --rule-strong:#BCC5BE; --hover:#EEF2EE;
   --teal:#0F6B3E; --teal-ink:#FFFFFF; --teal-soft:#E2F1E6; --teal-hover:#0A5530;
+  --btn:#285D3A; --btn-hover:#1C472B; --btn-ink:#FFFFFF;
   --amber:#8A5200; --amber-soft:#FBEFD5; --red:#B42318; --red-soft:#FDECEA; --green:#0F6B3E; --green-soft:#E2F1E6;
   --body:"Figtree", system-ui, -apple-system, "Segoe UI", Roboto, Arial, sans-serif;
   --head:"Figtree", system-ui, -apple-system, "Segoe UI", Roboto, Arial, sans-serif;
@@ -466,10 +467,12 @@ ul.gapl .gx:hover{border-color:var(--rule-strong);color:var(--red)}
 @media (prefers-color-scheme: dark){:root:not([data-theme="light"]){
   --paper:#111613; --sheet:#19201C; --ink:#E6ECE8; --muted:#A1ADA6; --rule:#2B3530; --rule-strong:#3E4A43; --hover:#202823;
   --teal:#5CC48C; --teal-ink:#08190F; --teal-soft:#173022; --teal-hover:#7DD4A5;
+  --btn:#5CC48C; --btn-hover:#7DD4A5; --btn-ink:#08190F;
   --amber:#F0C171; --amber-soft:#3A2E17; --red:#FF8A80; --red-soft:#3B1F1D; --green:#5CC48C; --green-soft:#173022; color-scheme:dark}}
 :root[data-theme="dark"]{
   --paper:#111613; --sheet:#19201C; --ink:#E6ECE8; --muted:#A1ADA6; --rule:#2B3530; --rule-strong:#3E4A43; --hover:#202823;
   --teal:#5CC48C; --teal-ink:#08190F; --teal-soft:#173022; --teal-hover:#7DD4A5;
+  --btn:#5CC48C; --btn-hover:#7DD4A5; --btn-ink:#08190F;
   --amber:#F0C171; --amber-soft:#3A2E17; --red:#FF8A80; --red-soft:#3B1F1D; --green:#5CC48C; --green-soft:#173022; color-scheme:dark}
 body{font-family:var(--body);background:var(--paper)}
 .wrap{max-width:1480px;padding:28px max(24px,env(safe-area-inset-left,0px)) 56px}
@@ -866,12 +869,21 @@ button.icon{width:40px;height:40px;padding:0;font-size:22px;line-height:1}
 .sc.l5 small{color:inherit;opacity:1}
 :root[data-theme="dark"] .grid tbody tr.done td,:root[data-theme="dark"] .grid tbody tr.done .sumline,:root[data-theme="dark"] .grid tbody tr.done .gap,:root[data-theme="dark"] .grid tbody tr.done .none,:root[data-theme="dark"] .grid tbody tr.done .scw,:root[data-theme="dark"] .grid tbody tr.done .rvtag{color:#A7AFAA;border-color:#6B736E}
 @media (prefers-color-scheme: dark){:root:not([data-theme="light"]) .grid tbody tr.done td,:root:not([data-theme="light"]) .grid tbody tr.done .sumline,:root:not([data-theme="light"]) .grid tbody tr.done .gap,:root:not([data-theme="light"]) .grid tbody tr.done .none,:root:not([data-theme="light"]) .grid tbody tr.done .scw,:root:not([data-theme="light"]) .grid tbody tr.done .rvtag{color:#A7AFAA;border-color:#6B736E}}
+/* v80: website tie-in */
+.brand .mark{display:inline-flex;align-items:center;gap:7px;min-width:0}
+.brand-ghost{width:22px;height:25px;color:var(--btn,var(--teal));flex:none;opacity:.9}
+@media (max-width:640px){.brand-ghost{width:19px;height:22px}}
+button.red,button.primary,.drop .choose{background:var(--btn,var(--teal));border-color:var(--btn,var(--teal));color:var(--btn-ink,var(--teal-ink))}
+button.red:hover:not(:disabled),button.primary:hover:not(:disabled),.drop .choose:hover{background:var(--btn-hover,var(--teal-hover));border-color:var(--btn-hover,var(--teal-hover))}
+.welcome{font-family:var(--display);font-size:21px;font-weight:500;color:var(--ink);margin:10px 0 6px}
+@media (max-width:640px){.welcome{font-size:18px}}
+.drop.compact .choose{color:var(--btn,var(--teal));border-color:var(--btn,var(--teal));background:var(--sheet)}
 </style>
 
 <div class="app">
 <header class="appbar">
   <div class="appbar-in">
-    <div class="brand"><span class="wordmark">ROGbuster</span><span class="tagline">Discovery response review</span></div>
+    <div class="brand"><span class="mark"><svg class="brand-ghost" viewBox="0 0 48 48" aria-hidden="true" focusable="false"><path d="M10 37V21a14 14 0 0 1 28 0v16l-7-4-7 5-7-5Z" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linejoin="round"/><ellipse cx="19" cy="22" rx="2" ry="3" fill="currentColor"/><ellipse cx="29" cy="22" rx="2" ry="3" fill="currentColor"/></svg><span class="wordmark">ROGbuster</span></span><span class="tagline">Discovery response review</span></div>
   </div>
 </header>
 <div class="stepbar" id="stepbar">
@@ -900,6 +912,7 @@ button.icon{width:40px;height:40px;padding:0;font-size:22px;line-height:1}
   <!-- STEP 1 -->
   <section class="stepbox" id="step-resp" hidden>
     <h1>Add discovery responses</h1>
+    <p class="welcome">Let’s see what’s lurking in their responses.</p>
     <p class="plede">Upload the responding party’s answers and objections.</p>
     <div class="files" id="rList" aria-live="polite"></div>
     <div class="drop" id="rdrop">
