@@ -12,8 +12,9 @@ ROGbuster is a free, open-source app that runs inside Claude. Upload the other s
 
 1. **Upload their responses.** PDF, Word, text or photos. Scanned PDFs are read with OCR. If you upload the wrong document (a complaint, or your own requests), ROGbuster tells you and moves it to the right step.
 2. **Add your requests and the complaint (optional).** Each answer is then judged against what you actually asked and what the case is about.
-3. **Review the gaps.** Every response gets a 0–5 completeness score and a list of issues. Change the score, X out an issue, add your own, and mark each response reviewed.
-4. **Draft the letter.** One click drafts a meet-and-confer letter covering every deficient response, addressed to opposing counsel from the signature block in their responses. You can also export everything to CSV.
+3. **Add court rules (optional).** Upload local rules or the judge's standing order. Claude pulls out the discovery requirements; you check the list, and the analysis and letter cite the ones you keep.
+4. **Review the gaps.** Every response gets a 0–5 completeness score and a list of issues. Change the score, X out an issue, add your own, and mark each response reviewed.
+5. **Draft the letter.** One click drafts a meet-and-confer letter covering every deficient response, addressed to opposing counsel from the signature block in their responses. You can also export everything to CSV.
 
 ## What you need
 
@@ -38,7 +39,7 @@ ROGbuster is a first pass that points you at likely problems. Claude can miss th
 |---|---|
 | `app/rogbuster.html` | The whole app: one HTML file with inline CSS and JavaScript. |
 | `docs/` | The rogbuster.com website, served by GitHub Pages. |
-| `test-docs/` | A fictional case (*Pie in the Sky Bakery v. Frostbyte Refrigeration*) for trying ROGbuster out: complaint, requests, responses, a scanned copy of the responses, and an answer key listing what a good review should catch. |
+| `test-docs/` | A fictional case (*Pie in the Sky Bakery v. Frostbyte Refrigeration*) for trying ROGbuster out: complaint, requests, responses, a scanned copy of the responses, and an answer key listing what a good review should catch. `test-docs/rules/` has fictional local rules and a standing order for the Rules step. |
 
 ## Running your own copy
 
