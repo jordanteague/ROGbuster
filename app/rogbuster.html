@@ -1380,7 +1380,7 @@ function compCell(r){
   if(!Number.isInteger(r.comp)) return `<span class="none">—</span>`;
   return `<span class="sc l${5 - r.comp}" title="${r.comp} out of 5">${r.comp}<small>/5</small></span>${r.decided && r.comp!==r.claudeComp ? `<span class="scw">Your score</span>` : ""}`;
 }
-function setComp(r, v){ if(!r) return; r.comp = v; r.decided = true; r.deficient = v < 5; save(); renderGrid(); renderStats(); renderSheet(); }
+function setComp(r, v){ if(!r) return; r.comp = v; r.decided = true; delete r.autoClear; r.deficient = v < 5; save(); renderGrid(); renderStats(); renderSheet(); }
 $("grid").addEventListener("keydown", e => { if(e.target.matches("input")) return; const tr = e.target.closest("tr[data-i]"); if(tr && e.target===tr && (e.key==="Enter" || e.key===" ")){ e.preventDefault(); openSheet(+tr.dataset.i); } });
 
 /* ---------- separate view of one response ---------- */
@@ -1467,7 +1467,7 @@ function body(r){
 $("sheet").addEventListener("click", e => {
   const card = e.target.closest(".req"), r = card && S().requests[+card.dataset.i]; if(!r) return;
   const gOff = e.target.closest("[data-gap-off]"), gOn = e.target.closest("[data-gap-on]");
-  if(gOff || gOn){ const k = +(gOff||gOn).dataset[gOff ? "gapOff" : "gapOn"]; r.gaps[k].off = !!gOff; r.problem = liveGaps(r)[0]||""; save(); renderGrid(); renderSheet(); const f = $("sheet").querySelector(gOff ? `[data-gap-on="${k}"]` : `[data-gap-off="${k}"]`); if(f) f.focus(); return; }
+  if(gOff || gOn){ const k = +(gOff||gOn).dataset[gOff ? "gapOff" : "gapOn"]; r.gaps[k].off = !!gOff; r.problem = liveGaps(r)[0]||""; if(gOff && !liveGaps(r).length && !r.decided && r.comp !== 5){ r.autoClear = r.comp; r.comp = 5; r.deficient = false; } else if(gOn && r.autoClear != null){ r.comp = r.autoClear; r.deficient = r.comp < 5; delete r.autoClear; } save(); renderStats(); renderGrid(); renderSheet(); const f = $("sheet").querySelector(gOff ? `[data-gap-on="${k}"]` : `[data-gap-off="${k}"]`); if(f) f.focus(); return; }
   if(e.target.closest("[data-gap-add]")){ addGap(r); return; }
   if(e.target.closest("[data-addnote]")){ noteOpen = true; renderSheet(); const t = $("sheet").querySelector('[data-f="notes"]'); if(t) t.focus(); return; }
 });
