@@ -877,6 +877,7 @@ button.red,button.primary,.drop .choose{background:var(--btn,var(--teal));border
 button.red:hover:not(:disabled),button.primary:hover:not(:disabled),.drop .choose:hover{background:var(--btn-hover,var(--teal-hover));border-color:var(--btn-hover,var(--teal-hover))}
 .welcome{font-family:var(--display);font-size:21px;font-weight:500;color:var(--ink);margin:10px 0 6px}
 @media (max-width:640px){.welcome{font-size:18px}}
+#newBtn{flex:none;white-space:nowrap}
 .drop.compact .choose{color:var(--btn,var(--teal));border-color:var(--btn,var(--teal));background:var(--sheet)}
 </style>
 
@@ -884,11 +885,11 @@ button.red:hover:not(:disabled),button.primary:hover:not(:disabled),.drop .choos
 <header class="appbar">
   <div class="appbar-in">
     <div class="brand"><span class="mark"><svg class="brand-ghost" viewBox="0 0 48 48" aria-hidden="true" focusable="false"><path d="M10 37V21a14 14 0 0 1 28 0v16l-7-4-7 5-7-5Z" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linejoin="round"/><ellipse cx="19" cy="22" rx="2" ry="3" fill="currentColor"/><ellipse cx="29" cy="22" rx="2" ry="3" fill="currentColor"/></svg><span class="wordmark">ROGbuster</span></span><span class="tagline">Discovery response review</span></div>
+    <button class="ghost sm" id="newBtn" type="button" hidden>Start over</button>
   </div>
 </header>
 <div class="stepbar" id="stepbar">
   <nav aria-label="Steps"><ol class="stepper" id="stepper"></ol></nav>
-  <button class="linkbtn quiet" id="newBtn" type="button" hidden>Start over</button>
 </div>
 <main class="main" id="main">
 <div class="wrap">
@@ -974,7 +975,7 @@ button.red:hover:not(:disabled),button.primary:hover:not(:disabled),.drop .choos
   <section id="step-results" hidden>
     <div id="rvList">
       <div class="banner" id="exampleBanner">This is a sample review. <button class="linkish" type="button" data-go="resp">Add your own responses</button> to start one.</div>
-      <div class="toprow"><button class="linkbtn back" type="button" data-go="resp"><span aria-hidden="true">←</span> Edit inputs</button><button class="linkbtn quiet" type="button" id="newBtn2" hidden>Start over</button></div>
+      <div class="toprow"><button class="linkbtn back" type="button" data-go="resp"><span aria-hidden="true">←</span> Edit inputs</button></div>
       <div class="rv-head">
         <div class="rv-title"><h1>Review responses</h1><p class="rv-sub" id="rvSub"></p></div>
         <div class="row" id="rvActions"></div>
@@ -1271,7 +1272,7 @@ function renderStats(){
   $("next").innerHTML = an;
   $("rvSub").textContent = `${missing ? `${done} of ${R.length}` : R.length} analyzed · ${rev} reviewed`;
   $("rvActions").innerHTML = `<button class="ghost" type="button" data-next="csv">Download CSV</button><button class="red" type="button" data-next="letter" ${inc && !live ? "" : "disabled"} aria-describedby="incNote">Draft letter</button><span class="sr" id="incNote">${live ? "Available when analysis finishes." : inc ? `${inc} response${inc===1?"":"s"} with issues will be raised.` : "No responses with issues to raise."}</span>`;
-  $("newBtn2").hidden = !sessionHas();
+  $("newBtn").hidden = !sessionHas();
   $("filters").innerHTML = FILTERS.map(([k,l,f]) => `<button type="button" data-filter="${k}" aria-pressed="${rvFilter===k}">${l}<span>${R.filter(f).length}</span></button>`).join("");
 }
 $("filters").addEventListener("click", e => { const b = e.target.closest("[data-filter]"); if(!b) return; rvFilter = b.dataset.filter; renderStats(); renderGrid(); });
@@ -1944,7 +1945,6 @@ async function submit(skipCtx){
   }finally{ btn.disabled = false; btn.innerHTML = `Analyze responses<span aria-hidden="true" class="arr">→</span>`; doneWorking(built ? "results" : cur); }
 }
 
-$("newBtn2").onclick = () => $("newBtn").onclick();
 $("newBtn").onclick = async () => {
   const has = (!state.isExample && hasResults()) || rFiles.length || qFiles.length || pFiles.length || $("qPaste").value.trim() || $("ctxText").value.trim();
   if(has && !(await ask("Start over? This clears every uploaded file, the case summary and case details, the review (scores, issues, notes and review status) and the letter. It can't be undone.", "Start over"))) return;
