@@ -1,6 +1,6 @@
 # 👻 ROGbuster
 
-**Put evasive answers to rest.**
+**Don’t let evasive answers haunt your case.**
 
 ROGbuster is a free, open-source app that runs inside Claude. Upload the other side's answers to your interrogatories, requests for production and requests for admission. ROGbuster scores how complete each response is, lists what's missing, and drafts your meet-and-confer letter.
 
