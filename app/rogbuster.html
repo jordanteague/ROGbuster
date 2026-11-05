@@ -923,7 +923,7 @@ button.red:hover:not(:disabled),button.primary:hover:not(:disabled),.drop .choos
         </div>
     <input type="file" id="rIn" multiple accept=".pdf,.docx,.txt,.md,.jpg,.jpeg,.png,application/pdf,application/vnd.openxmlformats-officedocument.wordprocessingml.document,text/plain,image/jpeg,image/png" hidden>
     <span class="status" id="runNote" aria-live="polite"></span>
-    <div class="links"><button class="linkbtn" type="button" id="exBtn" data-go="results">Try a sample</button></div>
+    <div class="links"><button class="linkbtn" type="button" id="exBtn">Try a sample</button></div>
     <div class="nav" data-nav="resp"><span class="status">Requests and case context are optional.</span><button class="red" type="button" id="next1" data-go="req" disabled>Continue<span aria-hidden="true" class="arr">→</span></button></div>
   </section>
 
@@ -1271,7 +1271,7 @@ function renderStats(){
   else if(missing && !state.isExample) an = `<div class="prog"><div><span class="lbl"><span class="btnspin dark" aria-hidden="true"></span><b>Waiting for Claude</b> · ${done} of ${R.length} complete</span><div class="bar wait"><i></i></div><span class="status">Claude is busy. <span id="autoCount">${autoText()}</span> No action needed.</span></div></div><button class="ghost sm" type="button" data-next="rest">Try now</button>`;
   $("next").innerHTML = an;
   $("rvSub").textContent = `${missing ? `${done} of ${R.length}` : R.length} analyzed · ${rev} reviewed`;
-  $("rvActions").innerHTML = `<button class="ghost" type="button" data-next="csv">Download CSV</button><button class="red" type="button" data-next="letter" ${inc && !live ? "" : "disabled"} aria-describedby="incNote">Draft letter</button><span class="sr" id="incNote">${live ? "Available when analysis finishes." : inc ? `${inc} response${inc===1?"":"s"} with issues will be raised.` : "No responses with issues to raise."}</span>`;
+  $("rvActions").innerHTML = `<button class="ghost" type="button" data-next="csv" ${live || missing ? "disabled" : ""} aria-describedby="csvNote">Download CSV</button><span class="sr" id="csvNote">${live || missing ? "Available when analysis finishes." : ""}</span><button class="red" type="button" data-next="letter" ${inc && !live ? "" : "disabled"} aria-describedby="incNote">Draft letter</button><span class="sr" id="incNote">${live ? "Available when analysis finishes." : inc ? `${inc} response${inc===1?"":"s"} with issues will be raised.` : "No responses with issues to raise."}</span>`;
   $("newBtn").hidden = !sessionHas();
   $("filters").innerHTML = FILTERS.map(([k,l,f]) => `<button type="button" data-filter="${k}" aria-pressed="${rvFilter===k}">${l}<span>${R.filter(f).length}</span></button>`).join("");
 }
@@ -1948,14 +1948,24 @@ async function submit(skipCtx){
 $("newBtn").onclick = async () => {
   const has = (!state.isExample && hasResults()) || rFiles.length || qFiles.length || pFiles.length || $("qPaste").value.trim() || $("ctxText").value.trim();
   if(has && !(await ask("Start over? This clears every uploaded file, the case summary and case details, the review (scores, issues, notes and review status) and the letter. It can't be undone.", "Start over"))) return;
+  resetSession(false);
+};
+$("exBtn").onclick = async () => {
+  if(!state.isExample){
+    if(sessionHas() && !(await ask("Load the sample? This clears every uploaded file, the case summary and case details, the review (scores, issues, notes and review status) and the letter. It can't be undone.", "Load sample"))) return;
+    resetSession(true);
+  }
+  clearAlert(); goStep("results");
+};
+function resetSession(toExample){
   clearTimeout(autoT); autoT = null; userStopped = false;
   if(ctl) ctl.abort(); ctl = null; if(found && found.ctl) found.ctl.abort(); found = null; live = null;
-  state = {v:3, isExample:false, matter:{}, set:{requests:[], letter:"", raiseLate:true, raiseGeneral:true}}; save();
+  state = toExample ? clone(EXAMPLE) : {v:3, isExample:false, matter:{}, set:{requests:[], letter:"", raiseLate:true, raiseGeneral:true}}; save(); (state.set.requests||[]).forEach(normReq);
   clearForm(); [rFiles, qFiles, pFiles].forEach(l => l.length = 0);
   renderFileList(rFiles, $("rList")); renderFileList(qFiles, $("qList")); renderFileList(pFiles, $("pList"));
   $("qPaste").value = ""; $("ctxText").value = ""; $("ctxText").classList.remove("auto"); $("sumcard").classList.remove("drafted","busy"); ctxTouched = false; sumKey = ""; sumOpen = false; sumDrafted = false; pMoreOpen = false; $("ctxNote").textContent = ""; showSum(); $("ctxSrc").textContent = ""; updateNav();
-  renderAll(); goStep("resp");
-};
+  renderAll(); if(!toExample) goStep("resp");
+}
 
 function clearForm(){
   Object.values(FIELDS).forEach(id => { const el = $(id); el.value = id==="m-method" ? "e" : ""; delete el.dataset.touched; el.classList.remove("auto"); });
@@ -2478,7 +2488,7 @@ const OUTS = [["letter","Meet-and-confer letter"]];
 $("outTabs").onclick = e => { const b = e.target.closest("[data-out]"); if(!b) return; outKind = b.dataset.out; renderOut(); };
 function csv(s){
   const q = v => `"${String(v??"").replace(/"/g,'""')}"`;
-  const rows = [["Type","No.","Request","Response","Objections","Flags","Claude's completeness (0-5)","Issues","Completeness (final)","In letter","Source file","Agreed to produce","Promised by","Produced","Reviewed","What we ask for","Internal notes","Their full response"], ...s.requests.map(r => [r.type, r.number, r.text, r.answer||"", (r.objections||[]).join("; "), (r.flags||[]).join("; "), r.claudeComp ?? "", liveGaps(r).join("; "), r.comp ?? "", forLetter(r) ? "Yes" : "No", r.source||"", r.promised ? "Yes" : "", r.dueBy||"", r.promised ? (PROD.find(x => x[0]===(r.produced||""))||PROD[0])[1] : "", r.reviewed ? "Yes" : "No", r.ask||"", r.notes, r.theirResponse])];
+  const rows = [["Type","No.","Request (full text)","Their response (full text)","Request summary","Response summary","Objections","Flags","Issues","Claude's completeness (0-5)","Completeness (final)","Reviewed","What we ask for","Agreed to produce","Promised by","Produced","Internal notes","Source file"], ...s.requests.map(r => [r.type, r.number, r.text||"", r.theirResponse||"", r.summary||"", r.answer||"", (r.objections||[]).join("; "), (r.flags||[]).join("; "), liveGaps(r).join("; "), r.claudeComp ?? "", r.comp ?? "", r.reviewed ? "Yes" : "No", r.ask||"", r.promised ? "Yes" : "", r.dueBy||"", r.promised ? (PROD.find(x => x[0]===(r.produced||""))||PROD[0])[1] : "", r.notes||"", r.source||""])];
   return rows.map(r=>r.map(q).join(",")).join("\n");
 }
 /* The chart downloads from the results page. Uses the page's download permission, or a plain file link as a fallback. */
