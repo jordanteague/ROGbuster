@@ -881,6 +881,7 @@ button.red:hover:not(:disabled),button.primary:hover:not(:disabled),.drop .choos
 .courtline{display:flex;align-items:center;gap:12px;flex-wrap:wrap;background:var(--sheet);border:1px solid var(--rule);border-radius:var(--r-sm);padding:10px 14px}
 .courtline label{font-size:13px;font-weight:700;letter-spacing:.06em;text-transform:uppercase;color:var(--muted)}
 .courtline input{flex:1 1 260px;min-width:0}
+.courtline .status{flex-basis:100%;font-size:14px;color:var(--muted);margin:0}
 .rulescard .gapadd{display:flex;gap:8px;align-items:center}.rulescard .gapadd input{flex:1;min-width:0}
 .rulescard{background:var(--sheet);border:1px solid var(--teal);border-radius:var(--r);padding:16px 18px;display:flex;flex-direction:column;gap:10px}
 .rulescard h2{font-size:17px;margin:0}.rulescard .rchd p{margin:2px 0 0}
@@ -989,7 +990,7 @@ ul.rlist .gx:hover{border-color:var(--rule-strong);color:var(--red)}
   <section class="stepbox" id="step-rules" hidden>
     <h1>Add court rules</h1>
     <p class="plede">ROGbuster checks responses against the court's discovery code. Add local rules or the judge's standing order and it checks those too.</p>
-    <div class="courtline"><label for="uJuris">Court and code</label><input id="uJuris" placeholder="e.g. N.D. Cal., Federal Rules"><span class="status" id="uJurisNote"></span></div>
+    <div class="courtline"><label for="uJuris">Court and code</label><input id="uJuris" placeholder="e.g. N.D. Cal., Federal Rules" aria-describedby="uJurisNote"><span class="status" id="uJurisNote">Tells Claude which discovery code to apply, like the Federal Rules or the California CCP. Filled in from the caption when ROGbuster finds it, so fix it if it's wrong.</span></div>
     <div class="files" id="uList" aria-live="polite"></div>
     <div class="drop" id="udrop">
           <svg class="upi" viewBox="0 0 48 48" aria-hidden="true" focusable="false"><path d="M24 31V9M15 18l9-9 9 9" fill="none" stroke="currentColor" stroke-width="2.6" stroke-linecap="round" stroke-linejoin="round"/><path d="M8 31v5a3 3 0 0 0 3 3h26a3 3 0 0 0 3-3v-5" fill="none" stroke="currentColor" stroke-width="2.6" stroke-linecap="round"/></svg>
