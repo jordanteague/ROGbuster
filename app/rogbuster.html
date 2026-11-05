@@ -2404,6 +2404,13 @@ Reply with only JSON: {"requests":[{"type":"ROG"|"RFP"|"RFA","number":integer,"t
 /* A second, focused pass: check each analyzed response against the rules the user supplied, and cite them.
    Folding this into the main analysis let rules slip; asked on its own, Claude applies them reliably. */
 let rulesStat = {ran:0, cited:0, err:""}, rulesTier = null;
+function rulesLine(){
+  const all = S().rules||[], n = all.filter(x => x.cite).length;
+  if(!all.length) return " No court rules were added, so none were checked.";
+  if(!n) return ` ${all.length} court rule${all.length===1?"":"s"} had no citation, so none could be cited.`;
+  if(rulesStat.err) return ` The court rules check failed (${rulesStat.err}).`;
+  return ` Checked ${rulesStat.ran} response${rulesStat.ran===1?"":"s"} against ${n} court rule${n===1?"":"s"}: ${rulesStat.cited} rule citation${rulesStat.cited===1?"":"s"} added.`;
+}
 async function checkRules(list, signal){
   const R = (S().rules||[]).filter(x => x.cite); if(!R.length || !sample) return;
   const todo = list.filter(r => r.rating && !r.rulesChecked); if(!todo.length) return;
@@ -2625,7 +2632,7 @@ async function runReview(respT, keepNotes){
     try{ await reviewBatches(list, true); } finally { live = null; renderStats(); renderGrid(); }
     const noReq = list.filter(r=>!r.text).length;
     const left = unreviewed().length;
-    say((left ? `Analyzed ${list.length - left} of ${list.length} so far; the rest continue automatically. ` : `Analysis complete. `) + `Open each item to check Claude's issues. Anything with an issue goes in the letter.` + (noReq ? ` ${noReq} didn't restate the request; add your requests in step 2 to see them side by side.` : ""));
+    say((left ? `Analyzed ${list.length - left} of ${list.length} so far; the rest continue automatically. ` : `Analysis complete. `) + `Open each item to check Claude's issues. Anything with an issue goes in the letter.` + (noReq ? ` ${noReq} didn't restate the request; add your requests in step 2 to see them side by side.` : "") + rulesLine());
     renderFlags(); flagUnreviewed(); return true;
   }catch(e){
     say(e.code==="cancelled" ? "Stopped. Work done so far is in the results." : e.code==="none" ? "Check that the document has headings like “Response to Interrogatory No. 1”, or paste the text instead." : errCopy(e.code), e.code==="cancelled" ? "info" : true, e.code==="none" ? "Couldn't find any responses" : e.code==="cancelled" ? "Stopped" : "");
