@@ -2031,6 +2031,7 @@ function isBlank(k){ const el = $(FIELDS[k]); return k==="method" ? !el.dataset.
 function setAuto(k, v){
   if(v==null || v==="" || !isBlank(k)) return false;
   const el = $(FIELDS[k]); el.value = v; if(el.value !== v) return false;
+  if(k==="juris") $("uJuris").value = v;
   el.classList.add("auto"); return true;
 }
 Object.values(FIELDS).forEach(id => $(id).addEventListener("input", e => { e.target.classList.remove("auto"); e.target.dataset.touched = "1"; }));
